@@ -1,8 +1,7 @@
 require('dotenv').config();
 const express = require('express');
-const bcrypt = require('bcryptjs');
 const path = require('path');
-const { Sequelize } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const bodyParser = require('body-parser');
 
 const app = express();
@@ -25,8 +24,45 @@ sequelize.authenticate()
     .then(() => console.log('Conectado a MySQL'))
     .catch(err => console.error('Error de conexión a MySQL:', err));
 
-// Definir el modelo de Usuario
-const User = require('./models/User')(sequelize);
+// Definir el modelo de Producto
+const Product = sequelize.define('Producto', {
+    producto_id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    nombre_producto: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    descripcion: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+    },
+    talla: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    color: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    precio: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+    },
+    cantidad_stock: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+    categoria_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+}, {
+    tableName: 'Productos',
+    timestamps: false,
+});
 
 // Sincronizar el modelo con la base de datos
 sequelize.sync()
@@ -42,33 +78,112 @@ app.get('/register', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'register.html'));
 });
 
-// Registro de usuarios
-app.post('/register', async (req, res) => {
-    const { nombre, apellido, correo_electronico, contrasena } = req.body;
+app.get('/productos', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'productos.html'));
+});
 
+// CRUD Productos
+
+// Crear un nuevo producto
+app.post('/api/productos', async (req, res) => {
+    const { nombre_producto, descripcion, talla, color, precio, cantidad_stock, categoria_id } = req.body;
     try {
-        let user = await User.findOne({ where: { correo_electronico } });
-        if (user) {
-            return res.send('El usuario ya existe. <a href="/register">Volver a registrar</a>');
-        }
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(contrasena, salt);
-
-        user = await User.create({
-            nombre,
-            apellido,
-            correo_electronico,
-            contrasena: hashedPassword
+        const newProduct = await Product.create({
+            nombre_producto,
+            descripcion,
+            talla,
+            color,
+            precio,
+            cantidad_stock,
+            categoria_id
         });
-
-        res.send('Usuario registrado con éxito. <a href="/">Iniciar sesión</a>');
+        console.log("Producto creado:", newProduct);
+        res.status(201).json(newProduct);
     } catch (err) {
-        console.error(err.message);
+        console.error('Error al crear producto:', err.message);
         res.status(500).send('Error del servidor');
     }
 });
 
-// Inicio de sesión de usuarios
-app.post('/login', async (req, res) => {
-    const { correo_electronico, contrasena 
+// Obtener todos los productos
+app.get('/api/productos', async (req, res) => {
+    try {
+        const productos = await Product.findAll();
+        if (productos.length === 0) {
+            console.log("No se encontraron productos en la base de datos.");
+        } else {
+            console.log("Productos obtenidos:", productos);
+        }
+        res.json(productos);
+    } catch (err) {
+        console.error('Error al obtener productos:', err.message);
+        res.status(500).send('Error del servidor');
+    }
+});
+
+// Obtener un producto específico
+app.get('/api/productos/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const product = await Product.findByPk(id);
+        if (!product) {
+            console.log('Producto no encontrado con ID:', id);
+            return res.status(404).json({ msg: 'Producto no encontrado' });
+        }
+        res.json(product);
+    } catch (err) {
+        console.error('Error al obtener el producto:', err.message);
+        res.status(500).send('Error del servidor');
+    }
+});
+
+// Actualizar un producto
+app.put('/api/productos/:id', async (req, res) => {
+    const { id } = req.params;
+    const { nombre_producto, descripcion, talla, color, precio, cantidad_stock, categoria_id } = req.body;
+    try {
+        const product = await Product.findByPk(id);
+        if (!product) {
+            console.log('Producto no encontrado con ID:', id);
+            return res.status(404).json({ msg: 'Producto no encontrado' });
+        }
+        await product.update({
+            nombre_producto,
+            descripcion,
+            talla,
+            color,
+            precio,
+            cantidad_stock,
+            categoria_id
+        });
+        console.log("Producto actualizado:", product);
+        res.json(product);
+    } catch (err) {
+        console.error('Error al actualizar producto:', err.message);
+        res.status(500).send('Error del servidor');
+    }
+});
+
+// Eliminar un producto
+app.delete('/api/productos/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const product = await Product.findByPk(id);
+        if (!product) {
+            console.log('Producto no encontrado con ID:', id);
+            return res.status(404).json({ msg: 'Producto no encontrado' });
+        }
+        await product.destroy();
+        console.log("Producto eliminado con ID:", id);
+        res.json({ msg: 'Producto eliminado con éxito' });
+    } catch (err) {
+        console.error('Error al eliminar producto:', err.message);
+        res.status(500).send('Error del servidor');
+    }
+});
+
+// Iniciar el servidor
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en el puerto ${PORT}`);
+});

@@ -58,12 +58,14 @@ module.exports = (sequelize) => {
             // Verificar si el usuario existe
             let user = await User.findOne({ where: { correo_electronico } });
             if (!user) {
+                console.log('Usuario no encontrado con el correo:', correo_electronico);
                 return res.status(400).json({ msg: 'Credenciales inválidas' });
             }
 
             // Verificar la contraseña
             const isMatch = await bcrypt.compare(contrasena, user.contrasena);
             if (!isMatch) {
+                console.log('Contraseña no coincide para el usuario:', correo_electronico);
                 return res.status(400).json({ msg: 'Credenciales inválidas' });
             }
 
@@ -75,11 +77,10 @@ module.exports = (sequelize) => {
 
             res.json({ token });
         } catch (err) {
-            console.error(err.message);
+            console.error('Error al intentar iniciar sesión:', err.message);
             res.status(500).send('Error del servidor');
         }
     });
 
     return router;
 };
-    
