@@ -42,16 +42,16 @@ Sigue los pasos a continuación para configurar el proyecto localmente:
    cd luminar-gestion-ventas-inventarios
 
 ### Dependencias
--npm install express sequelize mysql2 bcryptjs dotenv body-parser
+- npm install express sequelize mysql2 bcryptjs dotenv body-parser
 **Si quieres usar nodemon para facilitar el desarrollo, instala también:**
--npm install --save-dev nodemon
+- npm install --save-dev nodemon
 
 ### Configurar las variables de entorno:
 **Crea un archivo .env en la raíz del proyecto y agrega la configuración de tu base de datos:**
--DB_HOST=localhost
--DB_USER=root
--DB_PASSWORD=tu_contraseña
--DB_NAME=luminar
--JWT_SECRET=supersecretkey
--PORT=5000
+- DB_HOST=localhost
+- DB_USER=root
+- DB_PASSWORD=tu_contraseña
+- DB_NAME=luminar
+- JWT_SECRET=supersecretkey
+- PORT=5000
 
