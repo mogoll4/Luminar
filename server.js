@@ -71,17 +71,16 @@ sequelize.sync()
 
 // Rutas para vistas HTML
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'login.html'));
-});
-
-app.get('/register', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'register.html'));
+    res.sendFile(path.join(__dirname, 'views', 'login-register.html'));
 });
 
 app.get('/productos', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'productos.html'));
 });
 
+app.get('/inicio', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'index.html'));
+});
 // CRUD Productos
 
 // Crear un nuevo producto
