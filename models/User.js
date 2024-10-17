@@ -24,6 +24,10 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false
         },
+        rol_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
         fecha_registro: {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW

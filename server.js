@@ -22,162 +22,98 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
 // Verificar la conexión a la base de datos
 sequelize.authenticate()
     .then(() => console.log('Conectado a MySQL'))
-    .catch(err => console.error('Error de conexión a MySQL:', err));
+    .catch(err => console.error('Error de conexión a MySQL:', err.message));
 
-// Definir el modelo de Producto
-const Product = sequelize.define('Producto', {
-    producto_id: {
+// Definir el modelo de Usuario
+const User = sequelize.define('Usuarios', {
+    usuario_id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
     },
-    nombre_producto: {
+    nombre: {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    descripcion: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-    },
-    talla: {
+    apellido: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: false,
     },
-    color: {
+    correo_electronico: {
         type: DataTypes.STRING,
-        allowNull: true,
-    },
-    precio: {
-        type: DataTypes.DECIMAL(10, 2),
+        unique: true,
         allowNull: false,
     },
-    cantidad_stock: {
-        type: DataTypes.INTEGER,
+    contrasena: {
+        type: DataTypes.STRING,
         allowNull: false,
     },
-    categoria_id: {
+    rol_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
 }, {
-    tableName: 'Productos',
+    tableName: 'Usuarios',
+    timestamps: false,
+});
+
+// Definir el modelo de Rol
+const Role = sequelize.define('Roles', {
+    rol_id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+    },
+    nombre: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+}, {
+    tableName: 'Roles',
     timestamps: false,
 });
 
 // Sincronizar el modelo con la base de datos
 sequelize.sync()
     .then(() => console.log('Modelos sincronizados'))
-    .catch(err => console.error('Error sincronizando modelos:', err));
+    .catch(err => console.error('Error sincronizando modelos:', err.message));
+
+// Importar y usar el módulo de autenticación
+try {
+    const authRoutes = require('./auth')(sequelize);
+    app.use('/api', authRoutes);
+    console.log('Rutas de autenticación cargadas correctamente.');
+} catch (err) {
+    console.error('Error al cargar las rutas de autenticación:', err.message);
+}
 
 // Rutas para vistas HTML
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'login-register.html'));
+    try {
+        res.sendFile(path.join(__dirname, 'views', 'login-register.html'));
+    } catch (err) {
+        console.error('Error al enviar el archivo HTML de login-register:', err.message);
+        res.status(500).send('Error del servidor al cargar la página de login/register.');
+    }
 });
 
+// Ruta de prueba
 app.get('/productos', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'productos.html'));
+    try {
+        res.sendFile(path.join(__dirname, 'views', 'productos.html'));
+    } catch (err) {
+        console.error('Error al enviar el archivo HTML de productos:', err.message);
+        res.status(500).send('Error del servidor al cargar la página de productos.');
+    }
 });
 
+// Ruta para la página de inicio (después del registro/login)
 app.get('/inicio', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'index.html'));
-});
-// CRUD Productos
-
-// Crear un nuevo producto
-app.post('/api/productos', async (req, res) => {
-    const { nombre_producto, descripcion, talla, color, precio, cantidad_stock, categoria_id } = req.body;
     try {
-        const newProduct = await Product.create({
-            nombre_producto,
-            descripcion,
-            talla,
-            color,
-            precio,
-            cantidad_stock,
-            categoria_id
-        });
-        console.log("Producto creado:", newProduct);
-        res.status(201).json(newProduct);
+        res.sendFile(path.join(__dirname, 'views', 'index.html'));
     } catch (err) {
-        console.error('Error al crear producto:', err.message);
-        res.status(500).send('Error del servidor');
-    }
-});
-
-// Obtener todos los productos
-app.get('/api/productos', async (req, res) => {
-    try {
-        const productos = await Product.findAll();
-        if (productos.length === 0) {
-            console.log("No se encontraron productos en la base de datos.");
-        } else {
-            console.log("Productos obtenidos:", productos);
-        }
-        res.json(productos);
-    } catch (err) {
-        console.error('Error al obtener productos:', err.message);
-        res.status(500).send('Error del servidor');
-    }
-});
-
-// Obtener un producto específico
-app.get('/api/productos/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const product = await Product.findByPk(id);
-        if (!product) {
-            console.log('Producto no encontrado con ID:', id);
-            return res.status(404).json({ msg: 'Producto no encontrado' });
-        }
-        res.json(product);
-    } catch (err) {
-        console.error('Error al obtener el producto:', err.message);
-        res.status(500).send('Error del servidor');
-    }
-});
-
-// Actualizar un producto
-app.put('/api/productos/:id', async (req, res) => {
-    const { id } = req.params;
-    const { nombre_producto, descripcion, talla, color, precio, cantidad_stock, categoria_id } = req.body;
-    try {
-        const product = await Product.findByPk(id);
-        if (!product) {
-            console.log('Producto no encontrado con ID:', id);
-            return res.status(404).json({ msg: 'Producto no encontrado' });
-        }
-        await product.update({
-            nombre_producto,
-            descripcion,
-            talla,
-            color,
-            precio,
-            cantidad_stock,
-            categoria_id
-        });
-        console.log("Producto actualizado:", product);
-        res.json(product);
-    } catch (err) {
-        console.error('Error al actualizar producto:', err.message);
-        res.status(500).send('Error del servidor');
-    }
-});
-
-// Eliminar un producto
-app.delete('/api/productos/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const product = await Product.findByPk(id);
-        if (!product) {
-            console.log('Producto no encontrado con ID:', id);
-            return res.status(404).json({ msg: 'Producto no encontrado' });
-        }
-        await product.destroy();
-        console.log("Producto eliminado con ID:", id);
-        res.json({ msg: 'Producto eliminado con éxito' });
-    } catch (err) {
-        console.error('Error al eliminar producto:', err.message);
-        res.status(500).send('Error del servidor');
+        console.error('Error al enviar el archivo HTML de inicio:', err.message);
+        res.status(500).send('Error del servidor al cargar la página de inicio.');
     }
 });
 

@@ -48,9 +48,9 @@ Sigue los pasos a continuación para configurar el proyecto localmente:
 
 ### Configurar las variables de entorno:
 **Crea un archivo .env en la raíz del proyecto y agrega la configuración de tu base de datos:**
-- DB_HOST=localhost
+- DB_HOST=127.0.0.1
 - DB_USER=root
-- DB_PASSWORD=tu_contraseña
+- DB_PASSWORD=1234
 - DB_NAME=luminar
 - JWT_SECRET=supersecretkey
 - PORT=5000
