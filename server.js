@@ -25,7 +25,7 @@ sequelize.authenticate()
     .catch(err => console.error('Error de conexión a MySQL:', err.message));
 
 // Definir el modelo de Usuario
-const User = sequelize.define('Usuarios', {
+const User = sequelize.define('Usuario', {
     usuario_id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -58,7 +58,7 @@ const User = sequelize.define('Usuarios', {
 });
 
 // Definir el modelo de Rol
-const Role = sequelize.define('Roles', {
+const Role = sequelize.define('Rol', {
     rol_id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -73,15 +73,18 @@ const Role = sequelize.define('Roles', {
     timestamps: false,
 });
 
-// Sincronizar el modelo con la base de datos
+// Relación entre Usuarios y Roles
+User.belongsTo(Role, { foreignKey: 'rol_id', as: 'rol' });
+
+// Sincronizar los modelos con la base de datos
 sequelize.sync()
     .then(() => console.log('Modelos sincronizados'))
     .catch(err => console.error('Error sincronizando modelos:', err.message));
 
 // Importar y usar el módulo de autenticación
 try {
-    const authRoutes = require('./auth')(sequelize);
-    app.use('/api', authRoutes);
+    const authRoutes = require('./routes/auth')(sequelize);
+    app.use('/', authRoutes); // Cambié de `/api` a `/` para utilizar las rutas directamente.
     console.log('Rutas de autenticación cargadas correctamente.');
 } catch (err) {
     console.error('Error al cargar las rutas de autenticación:', err.message);
@@ -97,7 +100,7 @@ app.get('/', (req, res) => {
     }
 });
 
-// Ruta de prueba
+// Ruta de prueba - Página de productos
 app.get('/productos', (req, res) => {
     try {
         res.sendFile(path.join(__dirname, 'views', 'productos.html'));
@@ -108,7 +111,57 @@ app.get('/productos', (req, res) => {
 });
 
 // Ruta para la página de inicio (después del registro/login)
-app.get('/inicio', (req, res) => {
+app.get('/shop', (req, res) => {
+    try {
+        res.sendFile(path.join(__dirname, 'views', 'shop.html'));
+    } catch (err) {
+        console.error('Error al enviar el archivo HTML de inicio:', err.message);
+        res.status(500).send('Error del servidor al cargar la página de inicio.');
+    }
+});
+
+// Ruta para la página de inicio (después del registro/login)
+app.get('/accounts', (req, res) => {
+    try {
+        res.sendFile(path.join(__dirname, 'views', 'accounts.html'));
+    } catch (err) {
+        console.error('Error al enviar el archivo HTML de inicio:', err.message);
+        res.status(500).send('Error del servidor al cargar la página de inicio.');
+    }
+});
+
+// Ruta para la página de inicio (después del registro/login)
+app.get('/cart', (req, res) => {
+    try {
+        res.sendFile(path.join(__dirname, 'views', 'cart.html'));
+    } catch (err) {
+        console.error('Error al enviar el archivo HTML de inicio:', err.message);
+        res.status(500).send('Error del servidor al cargar la página de inicio.');
+    }
+});
+
+// Ruta para la página de inicio (después del registro/login)
+app.get('/whishlist', (req, res) => {
+    try {
+        res.sendFile(path.join(__dirname, 'views', 'whishlist.html'));
+    } catch (err) {
+        console.error('Error al enviar el archivo HTML de inicio:', err.message);
+        res.status(500).send('Error del servidor al cargar la página de inicio.');
+    }
+});
+
+// Ruta para la página de inicio (después del registro/login)
+app.get('/accounts', (req, res) => {
+    try {
+        res.sendFile(path.join(__dirname, 'views', 'accounts.html'));
+    } catch (err) {
+        console.error('Error al enviar el archivo HTML de inicio:', err.message);
+        res.status(500).send('Error del servidor al cargar la página de inicio.');
+    }
+});
+
+// Ruta para la página de inicio (después del registro/login)
+app.get('/index', (req, res) => {
     try {
         res.sendFile(path.join(__dirname, 'views', 'index.html'));
     } catch (err) {
