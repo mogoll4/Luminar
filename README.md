@@ -1,7 +1,7 @@
 # Sistema de Información para la Gestión de Ventas e Inventarios en Luminar - Local de Ropa Femenina
 
 **Elaborado Por:**
-- Eric Sebastián Gonzales
+- Eric Sebastián gonzales
 - Paula Andrea Ortiz
 - Andres Mora
 - Javier Andrés Abril
