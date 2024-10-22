@@ -6,7 +6,7 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
-// Middlewares
+// Middlewares para analizar el cuerpo de las solicitudes
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -16,13 +16,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Conectar a MySQL usando Sequelize
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
     host: process.env.DB_HOST,
-    dialect: 'mysql'
+    dialect: 'mysql',
+    logging: false // Desactivar logging SQL para menos ruido en la consola
 });
 
 // Verificar la conexión a la base de datos
-sequelize.authenticate()
-    .then(() => console.log('Conectado a MySQL'))
-    .catch(err => console.error('Error de conexión a MySQL:', err.message));
+(async () => {
+    try {
+        await sequelize.authenticate();
+        console.log('Conectado a MySQL');
+    } catch (err) {
+        console.error('Error de conexión a MySQL:', err.message);
+        process.exit(1); // Salir si la conexión falla
+    }
+})();
 
 // Definir el modelo de Usuario
 const User = sequelize.define('Usuario', {
@@ -77,14 +84,20 @@ const Role = sequelize.define('Rol', {
 User.belongsTo(Role, { foreignKey: 'rol_id', as: 'rol' });
 
 // Sincronizar los modelos con la base de datos
-sequelize.sync()
-    .then(() => console.log('Modelos sincronizados'))
-    .catch(err => console.error('Error sincronizando modelos:', err.message));
+(async () => {
+    try {
+        await sequelize.sync({ alter: true });
+        console.log('Modelos sincronizados');
+    } catch (err) {
+        console.error('Error sincronizando modelos:', err.message);
+        process.exit(1); // Salir si la sincronización falla
+    }
+})();
 
 // Importar y usar el módulo de autenticación
 try {
-    const authRoutes = require('./routes/auth')(sequelize);
-    app.use('/', authRoutes); // Cambié de `/api` a `/` para utilizar las rutas directamente.
+    const authRoutes = require('./controllers/auth')(sequelize);
+    app.use('/', authRoutes);
     console.log('Rutas de autenticación cargadas correctamente.');
 } catch (err) {
     console.error('Error al cargar las rutas de autenticación:', err.message);
@@ -95,79 +108,53 @@ app.get('/', (req, res) => {
     try {
         res.sendFile(path.join(__dirname, 'views', 'login-register.html'));
     } catch (err) {
-        console.error('Error al enviar el archivo HTML de login-register:', err.message);
-        res.status(500).send('Error del servidor al cargar la página de login/register.');
+        console.error('Error al cargar la página de login/register:', err.message);
+        res.status(500).json({ msg: `Error del servidor: Error al cargar la página de login/register.` });
     }
 });
 
-// Ruta de prueba - Página de productos
-app.get('/productos', (req, res) => {
-    try {
-        res.sendFile(path.join(__dirname, 'views', 'productos.html'));
-    } catch (err) {
-        console.error('Error al enviar el archivo HTML de productos:', err.message);
-        res.status(500).send('Error del servidor al cargar la página de productos.');
-    }
-});
-
-// Ruta para la página de inicio (después del registro/login)
-app.get('/shop', (req, res) => {
-    try {
-        res.sendFile(path.join(__dirname, 'views', 'shop.html'));
-    } catch (err) {
-        console.error('Error al enviar el archivo HTML de inicio:', err.message);
-        res.status(500).send('Error del servidor al cargar la página de inicio.');
-    }
-});
-
-// Ruta para la página de inicio (después del registro/login)
 app.get('/accounts', (req, res) => {
-    try {
-        res.sendFile(path.join(__dirname, 'views', 'accounts.html'));
-    } catch (err) {
-        console.error('Error al enviar el archivo HTML de inicio:', err.message);
-        res.status(500).send('Error del servidor al cargar la página de inicio.');
-    }
+    res.sendFile(path.join(__dirname, 'views', 'accounts.html'));
 });
 
-// Ruta para la página de inicio (después del registro/login)
 app.get('/cart', (req, res) => {
-    try {
-        res.sendFile(path.join(__dirname, 'views', 'cart.html'));
-    } catch (err) {
-        console.error('Error al enviar el archivo HTML de inicio:', err.message);
-        res.status(500).send('Error del servidor al cargar la página de inicio.');
-    }
+    res.sendFile(path.join(__dirname, 'views', 'cart.html'));
 });
 
-// Ruta para la página de inicio (después del registro/login)
-app.get('/whishlist', (req, res) => {
-    try {
-        res.sendFile(path.join(__dirname, 'views', 'whishlist.html'));
-    } catch (err) {
-        console.error('Error al enviar el archivo HTML de inicio:', err.message);
-        res.status(500).send('Error del servidor al cargar la página de inicio.');
-    }
+app.get('/checkout', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'checkout.html'));
 });
 
-// Ruta para la página de inicio (después del registro/login)
-app.get('/accounts', (req, res) => {
-    try {
-        res.sendFile(path.join(__dirname, 'views', 'accounts.html'));
-    } catch (err) {
-        console.error('Error al enviar el archivo HTML de inicio:', err.message);
-        res.status(500).send('Error del servidor al cargar la página de inicio.');
-    }
+app.get('/dashboard-admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'dashboard-admin.html'));
 });
 
-// Ruta para la página de inicio (después del registro/login)
+app.get('/dashboard-cliente', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'dashboard-cliente.html'));
+});
+
+app.get('/dashboard-vendedor', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'dashboard-vendedor.html'));
+});
+
+app.get('/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
+});
+
 app.get('/index', (req, res) => {
-    try {
-        res.sendFile(path.join(__dirname, 'views', 'index.html'));
-    } catch (err) {
-        console.error('Error al enviar el archivo HTML de inicio:', err.message);
-        res.status(500).send('Error del servidor al cargar la página de inicio.');
-    }
+    res.sendFile(path.join(__dirname, 'views', 'index.html'));
+});
+
+app.get('/productos', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'productos.html'));
+});
+
+app.get('/shop', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'shop.html'));
+});
+
+app.get('/whishlist', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'whishlist.html'));
 });
 
 // Iniciar el servidor
