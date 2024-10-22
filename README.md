@@ -42,7 +42,8 @@ Sigue los pasos a continuación para configurar el proyecto localmente:
    cd luminar-gestion-ventas-inventarios
 
 ### Dependencias
-- npm install express sequelize mysql2 bcryptjs dotenv body-parser
+- npm install express dotenv sequelize mysql2 body-parser bcryptjs jsonwebtoken cookie-parser cors
+
 **Si quieres usar nodemon para facilitar el desarrollo, instala también:**
 - npm install --save-dev nodemon
 
