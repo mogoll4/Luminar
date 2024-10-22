@@ -103,6 +103,10 @@ function exportToPDF() {
     const doc = new jsPDF();
     const reportContainer = document.getElementById('reportContainer');
     const table = reportContainer.querySelector('table');
+
+    // Add logo
+    const logoUrl = '../public/assets/img/Logo-Luminar.png';
+    doc.addImage(logoUrl, 'JPEG', 5, 5, 25, 10);
     
     // Añadir título
     const title = reportContainer.querySelector('h2').textContent;
